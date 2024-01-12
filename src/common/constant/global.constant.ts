@@ -1,0 +1,1 @@
+export const POINT_AMOUNT_FOR_ONE_USER = 10;
