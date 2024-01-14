@@ -16,7 +16,9 @@ import {
   DataResponse,
   ServerError,
 } from '../common/responses/_global';
-import { RegisterSuccessResponse } from '../common/responses/auth.response';
+import {TokenSuccessResponse} from '../common/responses/auth.response';
+import {LoginDto} from "./dto/login.dto";
+import {User} from "../db/entities/user.entity";
 
 @Injectable()
 export class AuthService {
@@ -28,9 +30,38 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async register(
+  public async login(
+      loginDto: LoginDto,
+  ): Promise<DataResponse<TokenSuccessResponse> | BadRequest | ServerError> {
+    try {
+      const userData = await this.userService._checkUserCredentials(
+          loginDto,
+      );
+
+      if(userData instanceof User){
+        const auth_data = {
+          access_token: this.jwtService.sign({
+            ...userData,
+            id: userData.id.toString(),
+            sub: userData.id.toString(),
+          }),
+          expires_in: UTCDateFromDayAmountHelper(1),
+        };
+
+        return this.responseService.DataResponse(auth_data);
+      } else {
+        return this.errorService.BadRequest({
+          message: userData,
+        })
+      }
+    } catch (e) {
+      await this.errorService.HandleError(e);
+    }
+  }
+
+  public async register(
     registerDto: RegisterDto,
-  ): Promise<DataResponse<RegisterSuccessResponse> | BadRequest | ServerError> {
+  ): Promise<DataResponse<TokenSuccessResponse> | BadRequest | ServerError> {
     try {
       const isUserExist = await this.userService._isUserExist(
         registerDto.username,

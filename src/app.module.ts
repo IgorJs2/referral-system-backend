@@ -32,7 +32,7 @@ import * as process from "process";
           password: configService.get('database.password'),
           database: configService.get('database.name'),
           entities: [User, Referrer, Referral],
-          synchronize: process.env.NODE_ENV != "production",
+          synchronize: false,
         } as TypeOrmModuleAsyncOptions;
       },
       inject: [ConfigService],

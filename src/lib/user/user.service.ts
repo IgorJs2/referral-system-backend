@@ -15,8 +15,9 @@ import { EUserSource } from '../../db/interfaces/user.interface';
 import { ReferralService } from '../referral/referral.service';
 import { ReferrerService } from '../referrer/referrer.service';
 import { PersonalUserEntity } from '../../common/entities/user.entity';
-import { DataResponse, ServerError } from '../../common/responses/_global';
+import {BadRequest, DataResponse, ServerError} from '../../common/responses/_global';
 import { GetUserPersonalInfoResponse } from '../../common/responses/user.response';
+import {LoginDto} from "../../authentication/dto/login.dto";
 
 @Injectable()
 export class UserService {
@@ -29,7 +30,7 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  async GetPersonalInformation(
+  public async GetPersonalInformation(
     public_user: IPublicUser,
   ): Promise<DataResponse<GetUserPersonalInfoResponse> | ServerError> {
     try {
@@ -60,7 +61,30 @@ export class UserService {
   //*************HELPERS******************
   //**************************************
 
-  async _createUserForRegistration(dto: RegisterDto): Promise<User> {
+  public async _checkUserCredentials(dto: LoginDto): Promise<User | string> {
+    const user = await this.userRepository.findOne({
+      where: {
+        username: dto.username,
+      },
+    });
+
+    if (!user) {
+      return "User not found."
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(
+        dto.password,
+        user.Password,
+    );
+
+    if (!isPasswordCorrect) {
+      return "Password incorrect."
+    }
+
+    return user;
+  }
+
+  public async _createUserForRegistration(dto: RegisterDto): Promise<User> {
     const password = await bcrypt.hash(dto.password, 4);
 
     const user = await this.userRepository.save({
@@ -84,7 +108,7 @@ export class UserService {
     return user;
   }
 
-  async _isUserExist(username?: string, email?: string): Promise<boolean> {
+  public async _isUserExist(username?: string, email?: string): Promise<boolean> {
     const user = await this.userRepository.findOne({
       where: [{ username: username }, { Email: email }],
     });
@@ -92,7 +116,7 @@ export class UserService {
     return !!user;
   }
 
-  async _getUserReferralData(user_id: number): Promise<IUserReferralData> {
+  private async _getUserReferralData(user_id: number): Promise<IUserReferralData> {
     const points = await this.referrerService._getUserPoints(user_id);
     const referee_usernames =
       await this.referralService._getUserRefereeUsernames(user_id);

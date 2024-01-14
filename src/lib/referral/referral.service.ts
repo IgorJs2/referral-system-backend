@@ -20,14 +20,14 @@ export class ReferralService {
   //*************HELPERS******************
   //**************************************
 
-  async _addRefereeToUser(referral_id: number, referee_id: number) {
+  public async _addRefereeToUser(referral_id: number, referee_id: number) {
     await this.referralRepository.save({
       referral_id,
       referee_id,
     });
   }
 
-  async _getUserRefereeUsernames(referral_id: number) {
+  public async _getUserRefereeUsernames(referral_id: number) {
     const referees = await this.referralRepository.find({
       where: {
         referral_id,

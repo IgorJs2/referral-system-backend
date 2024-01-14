@@ -15,7 +15,7 @@ export class ReferrerService {
   //*************HELPERS******************
   //**************************************
 
-  async _addPointToUser(user_id: number) {
+  public async _addPointToUser(user_id: number) {
     const referrer = await this.referrerRepository.findOne({
       where: {
         user_id,
@@ -35,7 +35,7 @@ export class ReferrerService {
     await this.referrerRepository.save(referrer);
   }
 
-  async _getUserPoints(user_id: number) {
+  public async _getUserPoints(user_id: number) {
     const referrer = await this.referrerRepository.findOne({
       where: {
         user_id,
